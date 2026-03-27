@@ -209,7 +209,7 @@ class CustomCombineOp(SrOperation):
 
 def __debug_op():
     ctx = SrContext()
-    ctx.start_running()
+    ctx.run_context.start_running()
 
     op = CustomCombineOp(ctx, 'buy_trick_snack', no_battle=True)
     op.execute()

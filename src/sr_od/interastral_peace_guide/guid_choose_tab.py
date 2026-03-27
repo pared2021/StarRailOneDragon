@@ -42,9 +42,9 @@ class GuideChooseTab(SrOperation):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_ocr()
-    ctx.start_running()
+    ctx.run_context.start_running()
 
     op = GuideChooseTab(ctx, ctx.guide_data.best_match_tab_by_name('生存索引'))
     op.execute()

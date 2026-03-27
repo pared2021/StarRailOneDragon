@@ -174,9 +174,9 @@ class Synthesize(SrOperation):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_ocr()
-    ctx.start_running()
+    ctx.run_context.start_running()
 
     op = Synthesize(ctx, SynthesizeItemEnum.TRICK_SNACK.value, 0)
     op.execute()

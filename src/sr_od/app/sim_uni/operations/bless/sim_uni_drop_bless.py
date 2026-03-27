@@ -105,13 +105,13 @@ class SimUniDropBless(SrOperation):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_ocr()
-    ctx.start_running()
+    ctx.run_context.start_running()
 
     op = SimUniDropBless(ctx)
     op.execute()
-    ctx.stop_running()
+    ctx.run_context.stop_running()
 
 
 if __name__ == '__main__':

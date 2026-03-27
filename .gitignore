@@ -33,6 +33,7 @@ config/model.yml
 *.exe
 
 # 用户运行时产生的文件
+log.txt
 .temp
 .log/
 .install/

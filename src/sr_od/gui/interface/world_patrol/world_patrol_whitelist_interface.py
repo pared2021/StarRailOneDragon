@@ -2,10 +2,12 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidgetIte
 from qfluentwidgets import ComboBox, PushButton, TableWidget, ToolButton, FluentIcon
 from typing import Optional, List
 
+from one_dragon.base.operation.one_dragon_context import ContextInstanceEventEnum
 from one_dragon_qt.widgets.vertical_scroll_interface import VerticalScrollInterface
 from one_dragon_qt.widgets.row import Row
 from one_dragon_qt.widgets.setting_card.combo_box_setting_card import ComboBoxSettingCard
 from one_dragon_qt.widgets.setting_card.text_setting_card import TextSettingCard
+from one_dragon_qt.view.context_event_signal import ContextEventSignal
 from one_dragon.utils.i18_utils import gt
 from sr_od.context.sr_context import SrContext
 from sr_od.sr_map.sr_map_def import Planet, Region
@@ -18,6 +20,7 @@ class WorldPatrolWhitelistInterface(VerticalScrollInterface):
 
     def __init__(self, ctx: SrContext, parent=None):
         self.ctx: SrContext = ctx
+        self._context_event_signal = ContextEventSignal()
 
         VerticalScrollInterface.__init__(
             self,
@@ -156,6 +159,28 @@ class WorldPatrolWhitelistInterface(VerticalScrollInterface):
     def on_interface_shown(self) -> None:
         VerticalScrollInterface.on_interface_shown(self)
 
+        self.ctx.listen_event(ContextInstanceEventEnum.context_init_done.value, self._on_context_init_done)
+        self._context_event_signal.instance_changed.connect(self._reload_data)
+
+        if not self.ctx.ready_for_application:
+            return
+
+        self._reload_data()
+
+    def on_interface_hidden(self) -> None:
+        VerticalScrollInterface.on_interface_hidden(self)
+        self.ctx.unlisten_all_event(self)
+        try:
+            self._context_event_signal.instance_changed.disconnect(self._reload_data)
+        except RuntimeError:
+            pass
+
+    def _on_context_init_done(self, event) -> None:
+        """上下文初始化完成，通过 signal 通知 UI 线程重新加载数据"""
+        self._context_event_signal.instance_changed.emit()
+
+    def _reload_data(self) -> None:
+        """加载数据到界面"""
         self.update_display_by_config()
 
         self.ctx.map_data.load_map_data()

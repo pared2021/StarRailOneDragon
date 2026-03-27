@@ -17,6 +17,18 @@ try:
     _init_error = None
 
 
+    class CtxInitRunner(QThread):
+        finished = Signal()
+
+        def __init__(self, ctx: SrContext, parent=None):
+            super().__init__(parent)
+            self.ctx = ctx
+
+        def run(self):
+            self.ctx.init()
+            self.finished.emit()
+
+
     class CheckVersionRunner(QThread):
 
         get = Signal(tuple)
@@ -83,7 +95,6 @@ try:
             self.navigationInterface.setContentsMargins(0, 0, 0, 0)
 
             # 配置样式
-            OdQtStyleSheet.APP_WINDOW.apply(self)
             OdQtStyleSheet.NAVIGATION_INTERFACE.apply(self.navigationInterface)
             OdQtStyleSheet.STACKED_WIDGET.apply(self.stackedWidget)
             OdQtStyleSheet.AREA_WIDGET.apply(self.areaWidget)
@@ -107,6 +118,8 @@ try:
             from sr_od.gui.interface.game_assistant.game_assistant_interface import GameAssistantInterface
             self.add_sub_interface(GameAssistantInterface(self.ctx, parent=self))
 
+            from sr_od.gui.interface.quest.quest_interface import QuestInterface
+            self.add_sub_interface(QuestInterface(self.ctx, parent=self))
 
             # 点赞
             from one_dragon_qt.view.like_interface import LikeInterface
@@ -202,15 +215,6 @@ if __name__ == '__main__':
 
     _ctx = SrContext()
 
-    # 加载配置
-    _ctx.init_by_config()
-
-    # 异步加载OCR
-    _ctx.async_init_ocr()
-
-    # 异步更新免费代理
-    _ctx.async_update_gh_proxy()
-
     # 设置主题
     setTheme(Theme[_ctx.custom_config.theme.upper()])
 
@@ -220,7 +224,13 @@ if __name__ == '__main__':
     w.show()
     w.activateWindow()
 
+    # 异步加载配置
+    init_runner = CtxInitRunner(_ctx)
+    init_runner.start()
+
     # 启动应用程序事件循环
-    app.exec()
+    quit_code = app.exec()
 
     _ctx.after_app_shutdown()
+
+    sys.exit(quit_code)

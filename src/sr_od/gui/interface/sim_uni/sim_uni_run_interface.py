@@ -21,6 +21,7 @@ class SimUniRunInterface(AppRunInterface):
         AppRunInterface.__init__(
             self,
             ctx=ctx,
+            app_id='sim_universe',
             object_name='sr_sim_uni_run_interface',
             nav_text_cn='运行',
             parent=parent,

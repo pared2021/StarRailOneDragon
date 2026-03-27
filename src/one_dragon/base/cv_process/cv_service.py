@@ -1,6 +1,6 @@
 # coding: utf-8
 import os
-from typing import TYPE_CHECKING, List, Dict, Type
+from typing import List, Dict, Type
 
 import cv2
 import numpy as np
@@ -15,9 +15,8 @@ from one_dragon.base.cv_process.steps import (
     CvStepFilterByCentroidDistance, CvStepOcr, CvStepGrayscale, CvStepHistogramEqualization, CvStepThreshold,
     CvStepCropByArea, CvStepCropToAnnulus, CvTemplateMatchingStep
 )
-
 from one_dragon.base.operation.one_dragon_context import OneDragonContext
-from one_dragon.utils import os_utils
+from one_dragon.utils import os_utils, yaml_utils
 
 
 class CvService:
@@ -34,7 +33,7 @@ class CvService:
         :param od_ctx: 总上下文
         """
         self.od_ctx: OneDragonContext = od_ctx
-        self.ocr = od_ctx.ocr  # StarRail项目使用ocr而不是cv_ocr
+        self.ocr = od_ctx.ocr
         self.template_loader = od_ctx.template_loader
 
         # 可用的步骤类型
@@ -123,7 +122,7 @@ class CvService:
 
         with open(file_path, 'r', encoding='utf-8') as f:
             try:
-                pipeline_data = yaml.safe_load(f)
+                pipeline_data = yaml_utils.safe_load(f)
             except yaml.YAMLError:
                 return None
 

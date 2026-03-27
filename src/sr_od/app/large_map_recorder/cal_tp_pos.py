@@ -34,7 +34,7 @@ def cal_one(tp: SpecialPoint, debug_image: str, show: bool = False):
 
 if __name__ == '__main__':
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
 
     planet_name: str = '翁法罗斯'
     region_name: str = '「永恒圣城」奥赫玛'

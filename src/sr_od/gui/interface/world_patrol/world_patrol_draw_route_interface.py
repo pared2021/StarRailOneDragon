@@ -7,7 +7,7 @@ from qfluentwidgets import PushButton, PlainTextEdit, SettingCardGroup, ToolButt
 
 from one_dragon.base.config.config_item import ConfigItem
 from one_dragon.base.operation.context_event_bus import ContextEventItem
-from one_dragon.base.operation.one_dragon_context import ContextKeyboardEventEnum
+from one_dragon.base.operation.one_dragon_context import ContextKeyboardEventEnum, ContextInstanceEventEnum
 from one_dragon.utils import str_utils
 from one_dragon.utils.i18_utils import gt
 from one_dragon_qt.widgets.combo_box import ComboBox
@@ -15,6 +15,7 @@ from one_dragon_qt.widgets.image_viewer_widget import ImageViewerWidget
 from one_dragon_qt.widgets.row import Row
 from one_dragon_qt.widgets.setting_card.switch_setting_card import SwitchSettingCard
 from one_dragon_qt.widgets.vertical_scroll_interface import VerticalScrollInterface
+from one_dragon_qt.view.context_event_signal import ContextEventSignal
 from sr_od.app.world_patrol import world_patrol_route_draw_utils
 from sr_od.app.world_patrol.world_patrol_app import WorldPatrolApp
 from sr_od.app.world_patrol.world_patrol_route import WorldPatrolRoute
@@ -28,6 +29,7 @@ class WorldPatrolDrawRouteInterface(VerticalScrollInterface):
 
     def __init__(self, ctx: SrContext, parent=None):
         self.ctx: SrContext = ctx
+        self._context_event_signal = ContextEventSignal()
 
         VerticalScrollInterface.__init__(
             self,
@@ -306,6 +308,20 @@ class WorldPatrolDrawRouteInterface(VerticalScrollInterface):
     def on_interface_shown(self) -> None:
         VerticalScrollInterface.on_interface_shown(self)
 
+        self.ctx.listen_event(ContextInstanceEventEnum.context_init_done.value, self._on_context_init_done)
+        self._context_event_signal.instance_changed.connect(self._reload_data)
+
+        if not self.ctx.ready_for_application:
+            return
+
+        self._reload_data()
+
+    def _on_context_init_done(self, event) -> None:
+        """上下文初始化完成，通过 signal 通知 UI 线程重新加载数据"""
+        self._context_event_signal.instance_changed.emit()
+
+    def _reload_data(self) -> None:
+        """加载数据到界面"""
         self.ctx.map_data.load_map_data()
         self.update_planet_opt()
         self.update_region_without_level_opt()
@@ -319,6 +335,10 @@ class WorldPatrolDrawRouteInterface(VerticalScrollInterface):
     def on_interface_hidden(self) -> None:
         VerticalScrollInterface.on_interface_hidden(self)
         self.ctx.unlisten_all_event(self)
+        try:
+            self._context_event_signal.instance_changed.disconnect(self._reload_data)
+        except RuntimeError:
+            pass
 
     def update_display_by_route(self) -> None:
         """

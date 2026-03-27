@@ -90,9 +90,9 @@ class AssignmentsApp(SrApplication):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_ocr()
-    ctx.start_running()
+    ctx.run_context.start_running()
     op = AssignmentsApp(ctx)
     op.execute()
 

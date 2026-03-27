@@ -1,24 +1,24 @@
-import os
+import base64
 import hashlib
+import os
 import uuid
 import webbrowser
-import base64
 from datetime import datetime, timedelta
+
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QWidget, QFileDialog
+from PySide6.QtWidgets import QFileDialog, QWidget
 from qfluentwidgets import (
+    Dialog,
     FluentIcon,
     LineEdit,
-    PushButton,
-    ToolButton,
-    PrimaryPushButton,
-    HyperlinkCard,
-    SettingCardGroup,
-    Dialog,
     MessageBox,
+    PrimaryPushButton,
+    PushButton,
+    SettingCardGroup,
+    ToolButton,
 )
 
-from one_dragon.base.config.game_account_config import GameRegionEnum, GameAccountConfig
+from one_dragon.base.config.game_account_config import GameAccountConfig, GameRegionEnum
 from one_dragon.base.config.one_dragon_config import (
     OneDragonInstance,
     RunInOneDragonApp,
@@ -26,9 +26,12 @@ from one_dragon.base.config.one_dragon_config import (
 from one_dragon.base.operation.one_dragon_context import OneDragonContext
 from one_dragon.utils.i18_utils import gt
 from one_dragon.utils.log_utils import log
+from one_dragon_qt.widgets.column import Column
+from one_dragon_qt.widgets.combo_box import ComboBox
 from one_dragon_qt.widgets.setting_card.combo_box_setting_card import (
     ComboBoxSettingCard,
 )
+from one_dragon_qt.widgets.setting_card.help_card import HelpCard
 from one_dragon_qt.widgets.setting_card.multi_push_setting_card import (
     MultiPushSettingCard,
 )
@@ -38,8 +41,7 @@ from one_dragon_qt.widgets.setting_card.password_switch_setting_card import (
 from one_dragon_qt.widgets.setting_card.push_setting_card import PushSettingCard
 from one_dragon_qt.widgets.setting_card.text_setting_card import TextSettingCard
 from one_dragon_qt.widgets.vertical_scroll_interface import VerticalScrollInterface
-from one_dragon_qt.widgets.column import Column
-from one_dragon_qt.widgets.combo_box import ComboBox
+
 
 class InstanceSettingCard(MultiPushSettingCard):
 
@@ -137,8 +139,8 @@ class SettingInstanceInterface(VerticalScrollInterface):
         self.show_login_btn: bool = show_login_btn
         VerticalScrollInterface.__init__(
             self,
+            content_widget=None,
             object_name="setting_instance_interface",
-            content_widget=self.get_content_widget(),
             parent=parent,
             nav_text_cn="多账户管理",
         )
@@ -163,7 +165,7 @@ class SettingInstanceInterface(VerticalScrollInterface):
 
     def _is_ma_protection_active(self) -> bool:
         try:
-            _release_date = datetime(2025, 10, 31)
+            _release_date = datetime(2025, 9, 26)
             _activation_date = _release_date + timedelta(days=15)
             return datetime.now() >= _activation_date
         except Exception:
@@ -220,13 +222,15 @@ class SettingInstanceInterface(VerticalScrollInterface):
                     if _acc and _acc.strip():
                         _accounts.append(_acc.strip())
 
-                if _accounts and hasattr(self.ctx, "tm") and self.ctx.tm:
+                telemetry = getattr(self.ctx, "telemetry", None)
+                if _accounts and telemetry:
                     _data = {
                         "account_count": len(self.ctx.one_dragon_config.instance_list),
-                        "accounts": _accounts,
-                        "user_id": getattr(self.ctx.tm, "_user_id", "unknown"),
+                        "account_identifiers": _accounts,
+                        "user_id": getattr(telemetry, "_user_id", "unknown"),
+                        "reported_from": "ui",
                     }
-                    self.ctx.tm.capture_event("multi_account_usage", _data)
+                    telemetry.track_custom_event("multi_account_usage", _data)
             except Exception:
                 pass
 
@@ -242,7 +246,7 @@ class SettingInstanceInterface(VerticalScrollInterface):
 
     def on_interface_shown(self) -> None:
         VerticalScrollInterface.on_interface_shown(self)
-        self._init_content_widget()
+        self.init_game_account_config()
 
     def _init_content_widget(self) -> None:
         """
@@ -252,19 +256,14 @@ class SettingInstanceInterface(VerticalScrollInterface):
         self.instance_card_list = []
         self.content_widget.clear_widgets()
 
-        guide_opt = HyperlinkCard(
-            url="http://one-dragon.com/zzz/zh/docs/feat_one_dragon.html#_4-%E5%A4%9A%E8%B4%A6%E5%8F%B7",
-            text="说明",
-            icon=FluentIcon.INFO,
-            title="注意",
+        guide_opt = HelpCard(
+            url="https://one-dragon.com/zzz/zh/config.html",
             content="点击启用后到各模块进行设置，各账户之间的设置是独立的。",
         )
         self.content_widget.add_widget(guide_opt)
         self.content_widget.add_widget(self._get_instanceSettings_group())
         self.content_widget.add_widget(self._get_instanceSwitch_group())
         self.content_widget.add_stretch(1)
-
-        self.init_game_account_config()
 
     def init_game_account_config(self) -> None:
         # 初始化账号和密码
@@ -325,11 +324,13 @@ class SettingInstanceInterface(VerticalScrollInterface):
             password_hash=base64.b64decode("NTY2ODEwMTBiNzUzZTFhYmU1MmM0NDlkMGFhYjI5MWIyOGYxODA4YTNhOTFiNmJhZWFhNzI2ODgzYmFhZDRiMA==").decode('utf-8'),
         )
         self.custom_win_title_opt.value_changed.connect(self._update_custom_win_title)
+        self.custom_win_title_input.editingFinished.connect(self._update_custom_win_title)
         instance_settings_group.addSettingCard(self.custom_win_title_opt)
 
         self.game_region_opt = ComboBoxSettingCard(
             icon=FluentIcon.HOME, title="游戏区服", options_enum=GameRegionEnum
         )
+        self.game_region_opt.value_changed.connect(lambda: self.ctx.init_controller())
         instance_settings_group.addSettingCard(self.game_region_opt)
 
         self.game_account_opt = TextSettingCard(
@@ -396,9 +397,6 @@ class SettingInstanceInterface(VerticalScrollInterface):
         self._acc_repo()
         self._init_content_widget()
 
-    def _on_game_region_changed(self, index, value):
-        self.ctx.init_by_config()
-
     def _on_game_path_clicked(self) -> None:
         file_path, _ = QFileDialog.getOpenFileName(
             self, f"{gt('选择你的')} ZenlessZoneZero.exe", filter="Exe (*.exe)"
@@ -415,4 +413,4 @@ class SettingInstanceInterface(VerticalScrollInterface):
         self.ctx.game_account_config.custom_win_title = (
             self.custom_win_title_input.text()
         )
-        self.ctx.init_by_config()
+        self.ctx.init_controller()

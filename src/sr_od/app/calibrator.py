@@ -98,7 +98,7 @@ class Calibrator(SrApplication):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     app = Calibrator(ctx)
     app.execute()
 

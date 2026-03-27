@@ -2,11 +2,13 @@ from PySide6.QtWidgets import QWidget
 from qfluentwidgets import FluentIcon
 
 from one_dragon.base.config.config_item import ConfigItem
+from one_dragon.base.operation.one_dragon_context import ContextInstanceEventEnum
 from one_dragon_qt.widgets.column import Column
 from one_dragon_qt.widgets.setting_card.editable_combo_box_setting_card import EditableComboBoxSettingCard
 from one_dragon_qt.widgets.vertical_scroll_interface import VerticalScrollInterface
 from one_dragon_qt.widgets.setting_card.combo_box_setting_card import ComboBoxSettingCard
 from one_dragon_qt.widgets.setting_card.switch_setting_card import SwitchSettingCard
+from one_dragon_qt.view.context_event_signal import ContextEventSignal
 from sr_od.app.world_patrol.world_patrol_whitelist_config import load_all_whitelist_list, WorldPatrolWhitelist
 from sr_od.config.character_const import CHARACTER_LIST
 from sr_od.context.sr_context import SrContext
@@ -16,6 +18,7 @@ class WorldPatrolSettingInterface(VerticalScrollInterface):
 
     def __init__(self, ctx: SrContext, parent=None):
         self.ctx: SrContext = ctx
+        self._context_event_signal = ContextEventSignal()
 
         VerticalScrollInterface.__init__(
             self,
@@ -56,6 +59,28 @@ class WorldPatrolSettingInterface(VerticalScrollInterface):
     def on_interface_shown(self) -> None:
         VerticalScrollInterface.on_interface_shown(self)
 
+        self.ctx.listen_event(ContextInstanceEventEnum.context_init_done.value, self._on_context_init_done)
+        self._context_event_signal.instance_changed.connect(self._reload_data)
+
+        if not self.ctx.ready_for_application:
+            return
+
+        self._reload_data()
+
+    def on_interface_hidden(self) -> None:
+        VerticalScrollInterface.on_interface_hidden(self)
+        self.ctx.unlisten_all_event(self)
+        try:
+            self._context_event_signal.instance_changed.disconnect(self._reload_data)
+        except RuntimeError:
+            pass
+
+    def _on_context_init_done(self, event) -> None:
+        """上下文初始化完成，通过 signal 通知 UI 线程重新加载数据"""
+        self._context_event_signal.instance_changed.emit()
+
+    def _reload_data(self) -> None:
+        """加载数据到界面"""
         self.team_num_opt.init_with_adapter(self.ctx.world_patrol_config.team_num_adapter)
         config_list = (
                 [ConfigItem('游戏识别', 'none')]

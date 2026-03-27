@@ -15,6 +15,7 @@ from sr_od.app.support_character.support_character_app import SupportCharacterAp
 from sr_od.app.trailblaze_power.trailblaze_power_app import TrailblazePowerApp
 from sr_od.app.trick_snack.trick_snack_app import TrickSnackApp
 from sr_od.app.world_patrol.world_patrol_app import WorldPatrolApp
+from sr_od.app.quest.quest_app import QuestApp
 from sr_od.context.sr_context import SrContext
 from sr_od.operations.enter_game.open_and_enter_game import OpenAndEnterGame
 from sr_od.operations.enter_game.switch_account import SwitchAccount
@@ -39,6 +40,7 @@ class SrOneDragonApp(OneDragonApp, SrApplication):
             EchoOfWarApp(self.ctx),
             TrailblazePowerApp(self.ctx),
             WorldPatrolApp(self.ctx),
+            QuestApp(self.ctx),
             SimUniApp(self.ctx),
             RelicSalvageApp(self.ctx),
             EmailApp(self.ctx),
@@ -54,11 +56,8 @@ class SrOneDragonApp(OneDragonApp, SrApplication):
 
 def __debug():
     ctx = SrContext()
-    # 加载配置
-    ctx.init_by_config()
-
-    # 异步加载OCR
-    ctx.async_init_ocr()
+    # 加载配置（包含 OCR 初始化）
+    ctx.init()
 
     if ctx.env_config.auto_update:
         from one_dragon.utils.log_utils import log

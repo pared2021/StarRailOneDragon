@@ -26,6 +26,7 @@ class LargeMapRecorderRunInterface(AppRunInterface):
         AppRunInterface.__init__(
             self,
             ctx=ctx,
+            app_id='large_map_recorder',
             object_name='sr_large_map_recorder_run_interface',
             nav_text_cn='大地图录制',
             parent=parent,

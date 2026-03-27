@@ -101,8 +101,8 @@ class DailyTrainingApp(SrApplication):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
-    ctx.start_running()
+    ctx.init()
+    ctx.run_context.start_running()
     op = DailyTrainingApp(ctx)
     op.execute()
 

@@ -117,10 +117,10 @@ class SimUniRunWorld(SrOperation):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.sim_uni_info.world_num = 8
     ctx.init_for_sim_uni()
-    ctx.start_running()
+    ctx.run_context.start_running()
     op = SimUniRunWorld(ctx, world_num=8)
     op.execute()
 

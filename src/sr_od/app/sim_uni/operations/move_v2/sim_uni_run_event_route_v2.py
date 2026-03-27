@@ -191,13 +191,13 @@ class SimUniRunEventRouteV2(SimUniRunRouteBaseV2):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_ocr()
 
     op = SimUniRunEventRouteV2(ctx)
-    ctx.start_running()
+    ctx.run_context.start_running()
     op.execute()
-    ctx.stop_running()
+    ctx.run_context.stop_running()
 
 
 if __name__ == '__main__':

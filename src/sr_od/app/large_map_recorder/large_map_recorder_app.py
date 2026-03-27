@@ -668,13 +668,13 @@ def __debug(planet_name, region_name, run_mode: str = 'all'):
 
     app = LargeMapRecorder(**sc)
 
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_for_world_patrol()
 
     if run_mode == 'all':
         app.execute()  # 正常录制
     elif run_mode == 'screenshot':  # 只进行截图
-        ctx.start_running()
+        ctx.run_context.start_running()
         app.open_map()
         app.choose_planet()
 
@@ -683,7 +683,7 @@ def __debug(planet_name, region_name, run_mode: str = 'all'):
         app.do_screenshot()
         app.merge_screenshot()
 
-        ctx.stop_running()
+        ctx.run_context.stop_running()
     elif run_mode == 'merge':
         # app.debug = True
         app.merge_screenshot()

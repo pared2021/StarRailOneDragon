@@ -98,9 +98,9 @@ class EchoOfWarApp(SrApplication):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_for_sim_uni()
-    ctx.start_running()
+    ctx.run_context.start_running()
     op = EchoOfWarApp(ctx)
     op.execute()
 

@@ -62,9 +62,9 @@ class GuideChooseCategory(SrOperation):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_ocr()
-    ctx.start_running()
+    ctx.run_context.start_running()
 
     tab = ctx.guide_data.best_match_tab_by_name('生存索引')
     category = ctx.guide_data.best_match_category_by_name('侵蚀隧洞', tab)

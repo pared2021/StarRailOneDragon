@@ -4,6 +4,12 @@ from typing import Optional, List
 from one_dragon.utils import str_utils
 from one_dragon.utils.i18_utils import gt
 
+# 应用常量
+APP_ID = 'sim_uni'
+APP_NAME = '模拟宇宙'
+DEFAULT_GROUP = True
+NEED_NOTIFY = True
+
 
 class SimUniType:
 

@@ -398,9 +398,9 @@ class WorldPatrolRunRoute(SrOperation):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_for_world_patrol()
-    ctx.start_running()
+    ctx.run_context.start_running()
 
     from sr_od.app.world_patrol.world_patrol_whitelist_config import WorldPatrolWhitelist
     whitelist = WorldPatrolWhitelist('名单_3')  # 单条测试

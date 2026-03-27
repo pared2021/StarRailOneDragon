@@ -24,6 +24,7 @@ class WorldPatrolRunInterface(AppRunInterface):
         AppRunInterface.__init__(
             self,
             ctx=ctx,
+            app_id='world_patrol',
             object_name='sr_world_patrol_run_interface',
             nav_text_cn='运行',
             parent=parent,

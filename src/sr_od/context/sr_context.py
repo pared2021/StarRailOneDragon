@@ -1,7 +1,9 @@
 import time
-
+from functools import cached_property
+from pathlib import Path
 from typing import Optional, List
 
+from one_dragon.base.operation.application.plugin_info import PluginSource
 from one_dragon.base.operation.one_dragon_context import OneDragonContext
 from one_dragon.utils import i18_utils
 from sr_od.app.assignments.assignments_run_record import AssignmentsRunRecord
@@ -26,6 +28,8 @@ from sr_od.app.memory_crystal_shard.memory_crystal_shard_run_record import Memor
 from sr_od.app.world_patrol.world_patrol_config import WorldPatrolConfig
 from sr_od.app.world_patrol.world_patrol_route_data import WorldPatrolRouteData
 from sr_od.app.world_patrol.world_patrol_run_record import WorldPatrolRunRecord
+from sr_od.app.quest.quest_config import QuestConfig
+from sr_od.app.quest.quest_run_record import QuestRunRecord
 from sr_od.config.character_const import Character, TECHNIQUE_ATTACK, TECHNIQUE_BUFF, TECHNIQUE_BUFF_ATTACK, FEIXIAO, \
     TECHNIQUE_BUFF_ATTACK_DISAPPEAR
 from sr_od.context.context_pos_info import ContextPosInfo
@@ -198,25 +202,64 @@ class SrContext(OneDragonContext):
         self.preheat_context = SrPreheatContext(self)
 
         # 实例独有的配置
-        self.load_instance_config()
+        self.reload_instance_config()
 
-    def init_by_config(self) -> None:
+    @cached_property
+    def application_plugin_dirs(self) -> list[tuple[Path, PluginSource]]:
+        """应用插件目录列表
+
+        SR 项目使用 sr_od/app 目录存放应用。
         """
-        根据配置进行初始化
+        dirs: list[tuple[Path, PluginSource]] = []
+
+        # SR 应用目录
+        app_dir = Path(__file__).parent.parent / 'app'
+        if app_dir.is_dir():
+            dirs.append((app_dir, PluginSource.BUILTIN))
+
+        # 外部插件目录
+        from one_dragon.utils import file_utils
+        src_dir = file_utils.find_src_dir(__file__)
+        if src_dir is not None:
+            plugins_dir = src_dir.parent / 'plugins'
+            if plugins_dir.is_dir():
+                dirs.append((plugins_dir, PluginSource.THIRD_PARTY))
+
+        return dirs
+
+    def init_controller(self) -> None:
+        """
+        初始化控制器
+        由 init() 调用
         :return:
         """
-        OneDragonContext.init_by_config(self)
-        i18_utils.update_default_lang(self.game_config.lang)
-
+        if self.controller is not None:
+            self.controller.cleanup_after_app_shutdown()
         self.controller = SrPcController(
             game_config=self.game_config,
-            win_title=self.game_config.win_title,
+            screenshot_method=self.env_config.screenshot_method,
             standard_width=self.project_config.screen_standard_width,
             standard_height=self.project_config.screen_standard_height
         )
+        self.controller.set_window_title(self.game_config.win_title)
 
-    def load_instance_config(self) -> None:
-        OneDragonContext.load_instance_config(self)
+    def init_for_application(self) -> None:
+        """
+        执行应用前还需要做的初始化
+        由 init() 调用
+        :return:
+        """
+        i18_utils.update_default_lang(self.game_config.lang)
+
+    def on_switch_instance(self) -> None:
+        """
+        切换实例后的回调，用于更新 controller 配置
+        """
+        if self.controller is not None:
+            self.controller.set_window_title(self.game_config.win_title)
+
+    def reload_instance_config(self) -> None:
+        OneDragonContext.reload_instance_config(self)
 
         # 切换实例后 所有信息都需要重置
         self.pos_info: ContextPosInfo = ContextPosInfo()
@@ -238,6 +281,9 @@ class SrContext(OneDragonContext):
 
         self.world_patrol_config: WorldPatrolConfig = WorldPatrolConfig(self.current_instance_idx)
         self.world_patrol_record: WorldPatrolRunRecord = WorldPatrolRunRecord(self.current_instance_idx, game_refresh_hour_offset)
+
+        self.quest_config: QuestConfig = QuestConfig(self.current_instance_idx)
+        self.quest_record: QuestRunRecord = QuestRunRecord(self.current_instance_idx, game_refresh_hour_offset)
 
         self.power_config: TrailblazePowerConfig = TrailblazePowerConfig(self.guide_data, self.current_instance_idx)
         self.power_record: TrailblazePowerRunRecord = TrailblazePowerRunRecord(self.power_config, self.current_instance_idx, game_refresh_hour_offset)

@@ -19,6 +19,7 @@ class CalibratorRunInterface(AppRunInterface):
         AppRunInterface.__init__(
             self,
             ctx=ctx,
+            app_id='calibrator',
             object_name='sr_calibrator_run_interface',
             nav_text_cn='校准',
             parent=parent,

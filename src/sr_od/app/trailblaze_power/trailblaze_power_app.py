@@ -187,9 +187,9 @@ class TrailblazePowerApp(SrApplication):
 
 def debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_ocr()
-    ctx.start_running()
+    ctx.run_context.start_running()
     op = TrailblazePowerApp(ctx)
 
     op.execute()

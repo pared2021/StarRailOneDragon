@@ -144,8 +144,8 @@ class NamelessHonorApp(SrApplication):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
-    ctx.start_running()
+    ctx.init()
+    ctx.run_context.start_running()
     op = NamelessHonorApp(ctx)
     op.execute()
 

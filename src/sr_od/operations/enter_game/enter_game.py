@@ -232,9 +232,9 @@ class EnterGame(SrOperation):
 
 def __debug():
     ctx = SrContext()
-    ctx.init_by_config()
+    ctx.init()
     ctx.init_ocr()
-    ctx.start_running()
+    ctx.run_context.start_running()
     app = EnterGame(ctx, switch=True)
     app.execute()
 
