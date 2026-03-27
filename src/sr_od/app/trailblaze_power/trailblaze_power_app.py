@@ -30,8 +30,7 @@ class TrailblazePowerApp(SrApplication):
     def __init__(self, ctx: SrContext):
         SrApplication.__init__(self, ctx, 'trailblaze_power',
                                op_name=gt('开拓力'),
-                               run_record=ctx.power_record,
-                               need_notify=True)
+                               run_record=ctx.power_record)
 
         self.last_mission: Optional[GuideMission] = None  # 上一个挑战副本
         self.power: int = 0  # 剩余开拓力
@@ -115,8 +114,6 @@ class TrailblazePowerApp(SrApplication):
                            max_reward_to_get=run_times,
                            get_reward_callback=self._on_sim_uni_get_reward
                            )
-            op.init_context_before_start = False
-            op.stop_context_after_stop = False
             return self.round_by_op_result(op.execute())
         elif mission.cate.cn == '饰品提取':
             op = ChallengeOrnamentExtraction(self.ctx, mission,

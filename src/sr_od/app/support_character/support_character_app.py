@@ -25,7 +25,7 @@ class SupportCharacterApp(SrApplication):
         2023-11-12 中英文最高画质测试通过
         """
         SrApplication.__init__(self, ctx, 'support_character', op_name=gt('支援角色奖励'),
-                               run_record=ctx.support_character_run_record, need_notify=True)
+                               run_record=ctx.support_character_run_record)
 
     @operation_node(name='打开菜单', is_start_node=True)
     def open_menu(self) -> OperationRoundResult:

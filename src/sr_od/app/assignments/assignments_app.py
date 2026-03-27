@@ -20,8 +20,7 @@ class AssignmentsApp(SrApplication):
 
     def __init__(self, ctx: SrContext):
         SrApplication.__init__(self, ctx, 'assignments', op_name=gt('委托'),
-                               run_record=ctx.assignments_run_record,
-                               need_notify=True)
+                               run_record=ctx.assignments_run_record)
 
     @operation_node(name='开始前返回', is_start_node=True)
     def back_at_first(self) -> OperationRoundResult:

@@ -25,8 +25,7 @@ class EmailApp(SrApplication):
         """
         SrApplication.__init__(self, ctx, 'email',
                                op_name=gt('邮件', 'game'),
-                               run_record=ctx.email_run_record,
-                               need_notify=True)
+                               run_record=ctx.email_run_record)
 
     @operation_node(name='开始前返回', is_start_node=True)
     def back_at_first(self) -> OperationRoundResult:

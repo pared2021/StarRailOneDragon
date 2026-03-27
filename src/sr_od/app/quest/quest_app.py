@@ -18,8 +18,7 @@ class QuestApp(SrApplication):
 
     def __init__(self, ctx: SrContext):
         SrApplication.__init__(self, ctx, 'quest', op_name=gt('任务自动化'),
-                               run_record=ctx.quest_record if hasattr(ctx, 'quest_record') else None,
-                               need_notify=True)
+                               run_record=ctx.quest_record if hasattr(ctx, 'quest_record') else None)
         self.quest_list: List[str] = []  # 待执行的任务列表
         self.current_idx: int = 0  # 当前执行的任务索引
 

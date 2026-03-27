@@ -255,6 +255,7 @@ class TrailblazePowerConfig(YamlConfig):
     def check_plan_run_times(self) -> None:
         """
         检查计划的运行次数 如果都完成了就重置
+        loop=False 时不重置，保留完成状态让一条龙跳过该任务
         """
         changed = False
         while True:
@@ -267,6 +268,10 @@ class TrailblazePowerConfig(YamlConfig):
 
             if any_incomplete:
                 break
+
+            # loop=False 时不重置，保持全部完成的状态
+            if not self.loop:
+                return
 
             for item in plan_list:
                 item.run_times -= item.plan_times

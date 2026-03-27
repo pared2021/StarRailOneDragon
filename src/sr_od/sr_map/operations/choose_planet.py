@@ -49,28 +49,31 @@ class ChoosePlanet(SrOperation):
             ocr_planet_list = self.get_planet_pos(screen)
 
             target_pos: Optional[MatchResult] = None
-            with_planet_before_target: bool = False  # 当前屏幕上是否有目标星球之前的星球
+            # 记录屏幕上可见星球的最小和最大编号，用于判断目标星球的方向
+            min_visible_num: Optional[int] = None
+            max_visible_num: Optional[int] = None
 
-            for planet in self.ctx.map_data.planet_list:
-                for ocr_planet_mr in ocr_planet_list:
-                    if ocr_planet_mr.data == self.planet:
-                        target_pos = ocr_planet_mr
-                        break
-                    if ocr_planet_mr.data == planet:
-                        with_planet_before_target = True
-
-                if target_pos is not None:
+            for ocr_planet_mr in ocr_planet_list:
+                if ocr_planet_mr.data == self.planet:
+                    target_pos = ocr_planet_mr
                     break
-
-                if planet == self.planet:
-                    break
+                # 记录可见星球的编号范围
+                planet_num = ocr_planet_mr.data.num
+                if min_visible_num is None or planet_num < min_visible_num:
+                    min_visible_num = planet_num
+                if max_visible_num is None or planet_num > max_visible_num:
+                    max_visible_num = planet_num
 
             if target_pos is not None:
                 self.choose_planet_by_pos(target_pos)
                 return self.round_wait(wait=3)
             else:  # 当前屏幕没有目标星球的情况
                 drag_from = Point(game_const.STANDARD_RESOLUTION_W // 2, 100)
-                drag_to = drag_from + Point(-400 if with_planet_before_target else 400, 0)
+                # 根据目标星球与可见星球的编号关系判断滑动方向
+                # 目标编号 < 最小可见编号 → 目标在左边 → 向左拖动（-400，让画面向右滚，露出左边内容）
+                # 目标编号 > 最大可见编号 → 目标在右边 → 向右拖动（+400，让画面向左滚，露出右边内容）
+                target_on_left = min_visible_num is not None and self.planet.num < min_visible_num
+                drag_to = drag_from + Point(-400 if target_on_left else 400, 0)
                 self.ctx.controller.click(drag_from)  # 这里比较神奇 直接拖动第一次会失败
                 self.ctx.controller.drag_to(drag_to, drag_from)
                 return self.round_retry(wait=1)

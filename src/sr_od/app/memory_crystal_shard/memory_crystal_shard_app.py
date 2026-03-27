@@ -11,8 +11,7 @@ class MemoryCrystalShardApp(SrApplication):
     def __init__(self, ctx: SrContext):
         SrApplication.__init__(self, ctx, 'memory_crystal_shard',
                                op_name=gt('领取记忆残晶'),
-                               run_record=ctx.memory_crystal_shard_run_record,
-                               need_notify=True)
+                               run_record=ctx.memory_crystal_shard_run_record)
 
     @operation_node(name='执行自定义指令', is_start_node=True)
     def run_op(self) -> OperationRoundResult:

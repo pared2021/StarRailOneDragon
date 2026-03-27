@@ -642,6 +642,19 @@ class Operation(OperationBase):
             prefix = self.__class__.__name__
         return debug_utils.save_debug_image(self.last_screenshot, prefix=prefix)
 
+    def save_screenshot_bytes(self):
+        """返回当前截图（用于通知推送）。
+
+        获取一张新截图并返回其图像数组，供后续通知推送时使用。
+
+        Returns:
+            np.ndarray | None: 截图图像数组，若截图失败则返回 None。
+        """
+        try:
+            return self.screenshot()
+        except Exception:
+            return self.last_screenshot
+
     @cached_property
     def display_name(self) -> str:
         """获取此操作的显示名称。
